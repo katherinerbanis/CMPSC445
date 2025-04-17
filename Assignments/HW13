@@ -1,0 +1,89 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support
+ 
+# Load Dataset
+trainData = pd.read_csv('train.csv')
+testData = pd.read_csv('test.csv')
+
+# Sample Data
+trainSample = trainData.sample(n=5000, random_state=42)
+testSample = testData.sample(n=1000, random_state=42)
+
+# Combine Samples
+data = pd.concat([trainSample, testSample])
+data['info'] = data['Title'] + data['Description']
+
+# Split Sample Data into Training and Testing
+train, test = train_test_split(data, test_size=1000/6000, random_state=42)
+
+
+# Feature Extraction
+
+# BoW
+bowVectorizer = CountVectorizer()
+bowXTrain = bowVectorizer.fit_transform(train['info'])
+bowXTest = bowVectorizer.transform(test['info'])
+ 
+# TF-IDF
+tfidfVectorizer = TfidfVectorizer()
+tfidXTrain = tfidfVectorizer.fit_transform(train['info'])
+tfidXTest = tfidfVectorizer.transform(test['info'])
+
+# Class Index
+yTrain = train['Class Index']
+yTest = test['Class Index']
+ 
+
+# Logistic Regression Models
+
+# BoW Logistic Regression
+bowLR = LogisticRegression(max_iter=1000)
+bowLR.fit(bowXTrain, yTrain)
+
+# TF-IDF Logistic Regression
+tfidfLR = LogisticRegression(max_iter=1000)
+tfidfLR.fit(tfidXTrain, yTrain)
+
+# Evaluate Models
+bowYPred = bowLR.predict(bowXTest)
+tfidfYPred = tfidfLR.predict(tfidXTest)
+
+# Evaluation Metrics
+bowAccuracy = accuracy_score(yTest, bowYPred)
+bowPrecision, bowRecall, bowF1, _ = precision_recall_fscore_support(yTest, bowYPred, average='macro')
+
+
+tfidfAccuracy = accuracy_score(yTest, tfidfYPred)
+tfidfPrecision, tfidfRecall, tfidfF1, _ = precision_recall_fscore_support(yTest, tfidfYPred, average='macro')
+
+
+# Print Results
+print("BoW (Bag of Words):")
+print(f"Model Accuracy: {bowAccuracy}")
+print(f"Precision: {bowPrecision}")
+print(f"Recall: {bowRecall}")
+print(f"F1 Score: {bowF1}")
+print('\n')
+print("TF-IDF:")
+print(f"Model Accuracy: {tfidfAccuracy}")
+print(f"Precision: {tfidfPrecision}")
+print(f"Recall: {tfidfRecall}")
+print(f"F1 Score: {tfidfF1}")
+ 
+
+# Execution Results
+
+# BoW (Bag of Words):
+# Model Accuracy: 0.861
+# Precision: 0.8599465389296872
+# Recall: 0.8613145258103242
+# F1 Score: 0.8604441256079809
+ 
+# TF-IDF:
+# Model Accuracy: 0.871
+# Precision: 0.8700431547355741
+# Recall: 0.871225829174645
+# F1 Score: 0.8701190838398956
