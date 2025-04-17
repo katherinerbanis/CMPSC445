@@ -1,0 +1,67 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, OneHotEncoder, LabelEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline, make_pipeline
+from sklearn.impute import SimpleImputer
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import BaggingClassifier, GradientBoostingClassifier
+from xgboost import XGBClassifier
+from sklearn.metrics import accuracy_score, classification_report
+
+# Load dataset
+data = pd.read_csv('LifeExpectancyData.csv')
+
+# Impute missing values
+imputeStrategies = {'Alcohol': 'median', 'Hepatitis B': 'median', 'GDP': 'median', 'Population': 'median'}
+for col, strategy in imputeStrategies.items():
+data[col].fillna(data[col].agg(strategy), inplace=True)
+
+# Encode the 'Year' column to integer labels
+label_encoder = LabelEncoder()
+y_encoded = label_encoder.fit_transform(data['Year'])
+
+# Separate features and target
+x = data.drop(['Year'], axis=1)
+y = y_encoded
+
+# Encoding 'Status'
+categoricalFeatures = ['Status']
+categoricalTransformer = Pipeline(steps=[
+('imputer', SimpleImputer(strategy='most_frequent')),
+('onehot', OneHotEncoder(handle_unknown='ignore'))])
+
+# Pipeline for numerical features
+numericFeatures = x.select_dtypes(include=['int64', 'float64']).columns
+numericTransformer = Pipeline(steps=[
+('imputer', SimpleImputer(strategy='median')),
+('scaler', StandardScaler())])
+
+# Combine transformers
+preprocessor = ColumnTransformer(
+transformers=[
+('num', numericTransformer, numericFeatures),
+('cat', categoricalTransformer, categoricalFeatures)])
+
+# Split dataset
+xTrain, xTest, yTrain, yTest = train_test_split(x, y, test_size=0.2, random_state=42, stratify=y)
+
+# Classifier initialization
+logreg = LogisticRegression(max_iter=1000)
+bagging = BaggingClassifier(n_estimators=100)
+gradientBoosting = GradientBoostingClassifier(n_estimators=100)
+xgb = XGBClassifier(use_label_encoder=False, eval_metric='mlogloss')
+
+# Create pipeline with preprocessing and classifier
+models = {
+"Logistic Regression": make_pipeline(preprocessor, logreg),
+"Bagging Classifier": make_pipeline(preprocessor, bagging),
+"Gradient Boosting Classifier": make_pipeline(preprocessor, gradientBoosting),
+"XGB Classifier": make_pipeline(preprocessor, xgb)}
+
+# Training and evaluating models
+for name, model in models.items():
+model.fit(xTrain, yTrain)
+yPred = model.predict(xTest)
+print(f"{name} Accuracy: {accuracy_score(yTest, yPred)}")
+print(f"{name} Classification Report:\n{classification_report(yTest, yPred)}")
