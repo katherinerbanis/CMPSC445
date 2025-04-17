@@ -1,0 +1,53 @@
+import ssl
+import certifi
+ssl._create_default_https_context = ssl._create_unverified_context
+import numpy as np
+import tensorflow as tf
+from tensorflow.keras.datasets import cifar10
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, Dense, Flatten, Reshape, Conv2D, Conv2DTranspose
+import matplotlib.pyplot as plt
+
+
+# load CIFAR-10 dataset
+(xTrain, yTrain), (xTest, yTest) = cifar10.load_data()
+xTrain, xTest = xTrain / 255.0, xTest / 255.0
+yTrain, yTest = yTrain.flatten(), yTest.flatten()
+
+# define encoder
+inputImg = Input(shape=(32, 32, 3))
+x = Conv2D(32, (3, 3), activation='relu', padding='same')(inputImg)
+x = Conv2D(64, (3, 3), activation='relu', padding='same')(x)
+x = Flatten()(x)
+encoded = Dense(2, activation='relu')(x)
+
+x = Dense(64 * 32 * 32, activation='relu')(encoded)
+x = Reshape((32, 32, 64))(x)
+x = Conv2DTranspose(32, (3, 3), activation='relu', padding='same')(x)
+decoded = Conv2DTranspose(3, (3, 3), activation='sigmoid', padding='same')(x)
+ 
+# autoencoder model
+autoencoder = Model(inputImg, decoded)
+autoencoder.compile(optimizer='adam', loss='binary_crossentropy')
+ 
+# train the model
+indices = np.arange(len(xTrain))
+np.random.shuffle(indices)
+indices = indices[:10000]
+xSubset = xTrain[indices]
+ySubset = yTrain[indices]
+
+autoencoder.fit(xSubset, xSubset, epochs=10, batch_size=256)
+
+# extract 2D latent representations
+encoder = Model(inputImg, encoded)
+encodedImgs = encoder.predict(xSubset)
+
+# plot representations
+plt.figure(figsize=(10, 10))
+scatter = plt.scatter(encodedImgs[:, 0], encodedImgs[:, 1], c=ySubset, cmap='tab10')
+plt.colorbar(scatter)
+plt.title('2D Latent Space of CIFAR-10')
+plt.xlabel('Dimension 1')
+plt.ylabel('Dimension 2')
+plt.show()
