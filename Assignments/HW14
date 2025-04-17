@@ -1,0 +1,50 @@
+import pandas as pd
+import numpy as np
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+
+# Data Preprocessing
+# load dataset
+data = pd.read_csv('tesla_stock_data.csv')
+
+# define function to create dataset
+def createDataset(data, pastDays=20, futureDays=10):
+     x, y, = [], []
+     # select relevant columns
+     attributes = ['Open', 'High', 'Low', 'Close', 'Volume', 'Adj Close']
+     for i in range(len(data) - pastDays - futureDays + 1):
+          # extract past days records
+          start = i
+          end = i + pastDays
+          # flatten the past days data
+          x.append(data.iloc[start:end][attributes].values.flatten())
+          # target is open price 10 days later
+          futureIndex = i + pastDays + futureDays - 1
+          y.append(data.iloc[futureIndex]['Open'])
+     return np.array(x), np.array(y)
+
+x, y = createDataset(data)
+
+# split data into training and testing sets
+xTrain, xTest, yTrain, yTest = train_test_split(x, y, test_size=0.2, random_state=42)
+
+# Model Building
+model = RandomForestRegressor(n_estimators=100, random_state=42)
+
+# Model Training
+history = model.fit(xTrain, yTrain)
+
+# Model Evaluation
+yPred = model.predict(xTest)
+mse = mean_squared_error(yTest, yPred)
+print(f'Model Loss (MSE): {mse}')
+
+# Prediction
+predictedPrice = model.predict(x[-1].reshape(1, -1))
+print(f'Predicted Open Price: {predictedPrice[0]}')
+ 
+
+# Execution Result
+# Model Loss (MSE): 549.632535906922
+# Predicted Open Price: 254.54.280426025392
