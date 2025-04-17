@@ -1,0 +1,44 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score
+
+file_id = '1VD6aZXnyOS7Xrlbsyc1Pssi6HnvvTp8B' # Replace with the actual file ID
+data = pd.read_csv(f'https://drive.google.com/uc?id={file_id}')
+
+# columns
+columns = ['MSSubClass', 'MSZoning', 'LotFrontage', 'LotArea', 'YearBuilt',
+'RoofStyle', 'FullBath', 'HalfBath', 'BedroomAbvGr', 'KitchenAbvGr',
+'KitchenQual','GarageArea', 'SalePrice']
+data = data[columns]
+
+# convert non-numeric values to numeric values
+data['MSZoning'] = pd.factorize(data['MSZoning'])[0]
+data['RoofStyle'] = pd.factorize(data['RoofStyle'])[0]
+data['KitchenQual'] = pd.factorize(data['KitchenQual'])[0]
+
+# drop rows with missing values
+data = data.dropna()
+
+# split the dataset into x (features) and y (target)
+x = data.drop('SalePrice', axis=1)
+y = data['SalePrice']
+
+# split the data into training and testing sets
+xTrain, xTest, yTrain, yTest = train_test_split(x, y, test_size=0.2, random_state=42)
+
+# train linear regression model
+model = LinearRegression()
+model.fit(xTrain, yTrain)
+
+# predictions
+yPred = model.predict(xTest)
+
+# evaluate
+rSquared = r2_score(yTest, yPred)
+print("Number of Train Data: ", len(xTrain))
+print("R-Squared Value: ", rSquared)
+
+# Execution Results:
+# Number of Train Data: 960
+# R-Squared Value: 0.6317474332412022
