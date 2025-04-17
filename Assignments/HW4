@@ -1,0 +1,54 @@
+# Selenium
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+
+import chromedriver_autoinstall
+chromedriver_autoinstall.install()
+
+options = webdriver.ChromeOptions()
+options.add_argument('--headless')
+driver = webdriver.Chrome(options=options)
+
+driver.get("https://quotes.toscrape.com/")
+
+quotes = []
+authors = []
+tagsList = []
+
+quote_elements = driver.find_elements(By.CLASS_NAME, "quote")
+for quote_element in quote_elements:
+    quote_text = quote_element.find_element(By.CLASS_NAME, "text").text
+    author = quote_element.find_element(By.CLASS_NAME, "author").text
+    tags = [tag.text for tag in quote_element.find_elements(By.CLASS_NAME, "tag")]
+
+    quotes.append(quote_text)
+    authors.append(author)
+    tagsList.append(tags)
+
+for i in range(len(quotes)):
+    print(f"Quote: {quotes[i]}")
+    print(f"Author: {authors[i]}")
+    print(f"Tags: {tagsList[i]}")
+
+driver.quit()
+
+# Scrapy
+
+import scrapy
+
+class Quotes(scrapy.Spider):
+    name = 'quotes'
+    start_urls = ["https://quotes.toscrape.com/"]
+
+    def parse(self, response):
+        for quote in response.css('div.quote'):
+            text = quote.css('span.text::text').get()
+            author = quote.css('small.author::text').get()
+            tags = quote.css('div.tags a.tag::text').getall()
+
+            yield {
+                'quote': text,
+                'author': author,
+                'tags': tags,
+            }
