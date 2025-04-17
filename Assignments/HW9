@@ -1,0 +1,55 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score
+
+# load dataset
+df = pd.read_csv('partial_credit - partial_credit.csv')
+
+# data preprocessing
+scaler = StandardScaler()
+df[['Time', 'Amount']] = scaler.fit_transform(df[['Time', 'Amount']])
+
+# split dataset
+x = df.drop('Class', axis=1)
+y = df['Class']
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=42)
+
+# model training
+kernels = ['linear', 'rbf', 'poly']
+results = []
+
+# calculate accuracy, recall, precision, f1 for each kernel
+for kernel in kernels:
+    svm = SVC(kernel=kernel, gamma='scale')
+    svm.fit(x_train, y_train)
+    predictions = svm.predict(x_test)
+    accuracy = accuracy_score(y_test, predictions)
+    recall = recall_score(y_test, predictions)
+    precision = precision_score(y_test, predictions)
+    f1 = f1_score(y_test, predictions)
+    results.append((kernel, accuracy, recall, precision, f1))
+
+# print results
+for result in results:
+    print(f"Kernel: {result[0]} \n Accuracy: {result[1]} \n Recall: {result[2]} \n Precision: {result[3]} \n F1: {result[4]} \n")
+
+# Results
+# Kernel: linear
+# Accuracy: 0.9977744807121661
+# Recall: 1.0
+# Precision: 0.9815950920245399
+# F1: 0.9907120743034056
+
+# Kernel: rbf
+# Accuracy: 0.9910979228486647
+# Recall: 0.925
+# Precision: 1.0
+# F1: 0.961038961038961
+
+# Kernel: poly
+# Accuracy: 0.9762611275964391
+# Recall: 0.8
+# Precision: 1.0
+# F1: 0.8888888888888888
