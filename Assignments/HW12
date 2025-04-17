@@ -1,0 +1,84 @@
+from bs4 import BeautifulSoup
+import requests
+import re
+from nltk import word_tokenize
+from nltk.probability import FreqDist
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer, WordNetLemmatizer
+
+# webscrape wiki to get all text
+def scrapeWebpage(url):
+page = requests.get(url)
+soup = BeautifulSoup(page.content, 'html.parser')
+text = ' '.join(p.get_text() for p in soup.find_all('p'))
+return text
+
+# preprocess text from wiki
+def textFromWebpage(text):
+# removes non-words
+text = re.sub(r'\W', ' ', text)
+# replaces multiple spaces with one
+text = re.sub(r'\s+', ' ', text)
+# converts to lowercase
+text = text.lower()
+return text
+
+# find keywords that don't include stopwords
+def findKeywords(text):
+words = word_tokenize(text)
+stopWords = stopwords.words("english")
+cleanWords = []
+for w in words:
+if w not in stopWords:
+cleanWords.append(w)
+fdist = FreqDist(cleanWords)
+return fdist.most_common(10)
+
+# find keywords that don't include stopwords using stemming
+def stemming(text):
+words = word_tokenize(text)
+stopWords = stopwords.words("english")
+stemmer = PorterStemmer()
+stemmedWords = [stemmer.stem(w) for w in words if w not in stopWords]
+fdist = FreqDist(stemmedWords)
+return fdist.most_common(10)
+
+# find keywords that don't include stopwords using lemmatization
+def lemmatization(text):
+words = word_tokenize(text)
+stopWords = stopwords.words("english")
+lemmatizer = WordNetLemmatizer()
+lemmatizedWords = [lemmatizer.lemmatize(w) for w in words if w not in stopWords]
+fdist = FreqDist(lemmatizedWords)
+return fdist.most_common(10)
+
+url = 'https://en.wikipedia.org/wiki/Natural_language_processing'
+text = scrapeWebpage(url)
+processedText = textFromWebpage(text)
+keywords = findKeywords(processedText)
+sWords = stemming(processedText)
+lWords = lemmatization(processedText)
+
+print("Top 10 Keywords:")
+print(keywords)
+print("Top 10 Keywords using Stemming:")
+print(sWords)
+print("Top 10 Keywords using Lemmatization:")
+print(lWords)
+
+# Execution Results
+
+# Top 10 Keywords:
+# [('language', 25), ('natural', 17), ('nlp', 15), 
+   ('processing', 13), ('cognitive', 13), ('based', 10), 
+   ('e', 9), ('linguistics', 9), ('tasks', 9), ('approach', 9)]
+
+# Top 10 Keywords using Stemming:
+# [('languag', 25), ('natur', 17), ('process', 15), 
+   ('nlp', 15), ('approach', 15), ('cognit', 14), 
+   ('rule', 11), ('base', 10), ('task', 10), ('e', 9)]
+
+# Top 10 Keywords using Lemmatization:
+# [('language', 25), ('natural', 17), ('nlp', 15), 
+   ('approach', 15), ('processing', 13), ('cognitive', 13), 
+   ('rule', 11), ('based', 10), ('task', 10), ('e', 9)]
