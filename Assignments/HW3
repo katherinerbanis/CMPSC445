@@ -1,0 +1,46 @@
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
+import pandas as pd
+
+# Model 1
+x1 = data[['houseAge']]
+y1 = data['housePrice']
+x1Train, x1Test, y1Train, y1Test = train_test_split(x1, y1, test_size=0.1, random_state=42)
+model1 = LinearRegression()
+model1.fit(x1Train, y1Train)
+predictions1 = model1.predict(x1Test)
+mse1 = mean_squared_error(y1Test, predictions1)
+
+# Model 2
+x2 = data[['latitude']]
+y2 = data['housePrice']
+x2Train, x2Test, y2Train, y2Test = train_test_split(x2, y2, test_size=0.1, random_state=42)
+model2 = LinearRegression()
+model2.fit(x2Train, y2Train)
+predictions2 = model2.predict(x2Test)
+mse2 = mean_squared_error(y2Test, predictions2)
+
+# Model 3
+x3 = data[['distance_to_MRT']]
+y3 = data['housePrice']
+x3Train, x3Test, y3Train, y3Test = train_test_split(x3, y3, test_size=0.1, random_state=42)
+model3 = LinearRegression()
+model3.fit(x3Train, y3Train)
+predictions3 = model3.predict(x3Test)
+mse3 = mean_squared_error(y3Test, predictions3)
+
+# Model 4
+x4 = data[['houseAge', 'latitude', 'longitude']]
+y4 = data['housePrice']
+x4Train, x4Test, y4Train, y4Test = train_test_split(x4, y4, test_size=0.1, random_state=42)
+model4 = LinearRegression()
+model4.fit(x4Train, y4Train)
+predictions4 = model4.predict(x4Test)
+mse4 = mean_squared_error(y4Test, predictions4)
+
+# Print mse for above models
+print("Model 1:", mse1)
+print("Model 2:", mse2)
+print("Model 3:", mse3)
+print("Model 4:", mse4)
