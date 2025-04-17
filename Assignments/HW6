@@ -1,0 +1,94 @@
+# Part 1
+
+from sklearn.datasets import load_wine
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
+
+# Load wine dataset
+wine = load_wine()
+xWine = wine.data
+yWine = wine.target
+
+# split data into training and testing sets
+xWineTrain, xWineTest, yWineTrain, yWineTest = train_test_split(xWine, yWine, test_size=0.3, random_state=0)
+
+#scaling
+scWine = StandardScaler()
+xWineTrainSTD = scWine.fit_transform(xWineTrain)
+xWineTestSTD = scWine.transform(xWineTest)
+
+# Logistic Regression
+lrWine = LogisticRegression(C=100.0, random_state=42, solver='lbfgs', multi_class='ovr')
+lrWine.fit(xWineTrainSTD, yWineTrain)
+lrPredWine = lrWine.predict(xWineTestSTD)
+lrAccurWine = accuracy_score(yWineTest, lrPredWine)
+
+# Decision Tree Classifier
+dtWine = DecisionTreeClassifier(criterion='entropy', max_depth=4, random_state=0)
+dtWine.fit(xWineTrainSTD, yWineTrain)
+dtPredWine = dtWine.predict(xWineTestSTD)
+dtAccurWine = accuracy_score(yWineTest, dtPredWine)
+
+print(f"Logistic Regression Accuracy of Wine: {lrAccurWine}")
+print(f"Decision Tree Classifier Accuracy of Wine: {dtAccurWine}")
+
+# Logistic Regression
+lrWine = LogisticRegression(C=100.0, random_state=42, solver='lbfgs', multi_class='ovr')
+lrWine.fit(xWineTrainSTD, yWineTrain)
+lrPredWine = lrWine.predict(xWineTestSTD)
+lrAccurWine = accuracy_score(yWineTest, lrPredWine)
+
+# Decision Tree Classifier
+dtWine = DecisionTreeClassifier(criterion='entropy', max_depth=4, random_state=42)
+dtWine.fit(xWineTrainSTD, yWineTrain)
+dtPredWine = dtWine.predict(xWineTestSTD)
+dtAccurWine = accuracy_score(yWineTest, dtPredWine)
+print(f"Logistic Regression Accuracy of Wine: {lrAccurWine}")
+print(f"Decision Tree Classifier Accuracy of Wine: {dtAccurWine}")
+
+# Results
+# Logistic Regression Accuracy of Wine: 1.0
+# Decision Tree Classifier Accuracy of Wine: 0.9444444444444444
+
+
+# Part 2
+
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.metrics import mean_squared_error
+import numpy as np
+
+# load iris dataset
+iris = load_iris()
+xIris = iris.data
+yIris = iris.target
+
+classOfIris = np.insert(xIris, xIris.shape[1], yIris, axis=1)
+
+# predict petal width, remove from features, use as target
+petalWidth = classOfIris[:, 3]
+classOfIris = np.delete(classOfIris, 3, axis=1)
+
+# split data into training and testing
+xIrisTrain, xIrisTest, yIrisTrain, yIrisTest = train_test_split(classOfIris, petalWidth, test_size=0.3, random_state=0)
+
+# scaling
+scIris = StandardScaler()
+xIrisTrainSTD = scIris.fit_transform(xIrisTrain)
+xIrisTestSTD = scIris.transform(xIrisTest)
+
+# Decision Tree Regressor
+dtIris = DecisionTreeRegressor(random_state=0)
+dtIris.fit(xIrisTrainSTD, yIrisTrain)
+predIris = dtIris.predict(xIrisTestSTD)
+
+mseIris = mean_squared_error(yIrisTest, predIris)
+
+print(f"Decision Tree Regressor of Iris: {mseIris}")
+
+# Results
+# Decision Tree Regressor of Iris: 0.058888888888888886
