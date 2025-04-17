@@ -1,0 +1,56 @@
+# model created from gender, age, salary
+
+import gdown
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import sklearn
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import confusion_matrix, accuracy_score, ConfusionMatrixDisplay
+
+# get the dataset
+file_id = '1QWQ_-JwF_QchnAcVVrpS_c_y4cE9Kx2S'
+output_file = 'sns.csv'
+gdown.download(f'https://drive.google.com/uc?id=Links to an external site.{file_id}', output_file, quiet=True)
+
+# load dataset
+dataset = pd.read_csv('sns.csv')
+
+# adjust index to include gender
+x = dataset.iloc[:, [1, 2, 3]].values # gender, age, salary columns
+y = dataset.iloc[:, -1].values # purchased column (last column of dataset)
+
+# encoding categorical data (gender)
+ct = ColumnTransformer(transformers=[('encoder', OneHotEncoder(), [0])], remainder='passthrough')
+x = np.array(ct.fit_transform(x))
+
+# split data into train and test sets
+xTrain, xTest, yTrain, yTest = train_test_split(x, y, test_size=0.20, random_state=0)
+
+# feature scaling
+sc = StandardScaler()
+xTrain = sc.fit_transform(xTrain)
+xTest = sc.transform(xTest)
+
+# naive bayes model on train
+classifier = GaussianNB()
+classifier.fit(xTrain, yTrain)
+
+# predict test set results
+yPred = classifier.predict(xTest)
+
+# confusion matrix
+cm = confusion_matrix(yTest, yPred)
+ac = accuracy_score(yTest, yPred)
+
+# display confusion matrix
+disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=['No Purchase', 'Purchase'])
+disp.plot()
+plt.show
+
+# print accuracy
+print(f"Accuracy including gender attribute: {ac}")
